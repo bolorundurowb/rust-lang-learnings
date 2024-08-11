@@ -18,9 +18,21 @@ fn main() {
                     let todo_opt = args().nth(2);
 
                     match todo_opt {
-                        Some(todo_entry) => add_todo(todo_entry.as_str()),
+                        Some(todo_entry) => add_todo(todo_entry),
                         None => {
                             println!("{color_red}Arguments are required for the 'add' command{color_reset}");
+                            println!();
+                            print_header();
+                        }
+                    }
+                }
+                "rm" => {
+                    let todo_opt = args().nth(2);
+
+                    match todo_opt {
+                        Some(todo_entry) => rm_todo(todo_entry),
+                        None => {
+                            println!("{color_red}Arguments are required for the 'rm' command{color_reset}");
                             println!();
                             print_header();
                         }
@@ -43,7 +55,33 @@ fn main() {
     }
 }
 
-fn add_todo(input: &str) {
+fn rm_todo(input: String) {
+    ensure_db();
+
+    let mut file = File::open(DB_PATH).expect("Failed to open database file");
+
+    let mut content = String::new();
+    file.read_to_string(&mut content).expect("Failed to read database file");
+
+    let lines: Vec<&str> = content.split("\n")
+        .filter(|line| line.trim() != input)
+        .collect();
+    let result = lines.join("\n");
+
+    // this was done in desperation as the code below did not overwrite what was in the file
+    clean_todos();
+
+    let mut rw_file = OpenOptions::new()
+        .write(true)
+        .create(true)
+        .open(DB_PATH)
+        .unwrap();
+
+    rw_file.write_all(result.as_bytes()).expect("Write failed");
+    println!("{color_green}Todo removed successfully{color_reset}");
+}
+
+fn add_todo(input: String) {
     ensure_db();
 
     let mut file = OpenOptions::new()
@@ -62,7 +100,7 @@ fn clean_todos() {
 fn list_todos() {
     ensure_db();
 
-    let mut file = File::open(DB_PATH).expect("Failed to read database file");
+    let mut file = File::open(DB_PATH).expect("Failed to open database file");
     let mut content = String::new();
 
     file.read_to_string(&mut content).expect("Failed to read database file");
@@ -92,7 +130,7 @@ fn ensure_db() {
 }
 
 fn print_header() {
-    println!("Welcome to TODO CLI");
+    println!("Welcome to Todo CLI");
     println!();
     println!("{color_green}Usage:{color_reset} {color_cyan}cli-todo-list [command] [args]{color_reset}");
     println!();
