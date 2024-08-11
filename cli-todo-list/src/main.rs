@@ -68,16 +68,13 @@ fn rm_todo(input: String) {
         .collect();
     let result = lines.join("\n");
 
-    // this was done in desperation as the code below did not overwrite what was in the file
-    clean_todos();
-
-    let mut rw_file = OpenOptions::new()
+    file = OpenOptions::new()
         .write(true)
-        .create(true)
+        .truncate(true)
         .open(DB_PATH)
         .unwrap();
 
-    rw_file.write_all(result.as_bytes()).expect("Write failed");
+    file.write_all(result.as_bytes()).expect("Write failed");
     println!("{color_green}Todo removed successfully{color_reset}");
 }
 
