@@ -1,5 +1,10 @@
 use std::env::args;
-use inline_colorization::{color_green, color_red, color_reset, color_cyan};
+use std::fs::File;
+use std::io::Read;
+use std::path::Path;
+use inline_colorization::{color_green, color_red, color_reset, color_cyan, color_yellow};
+
+const DB_PATH: &str = "./todo.db";
 
 fn main() {
     print_header();
@@ -8,7 +13,7 @@ fn main() {
     match command_opt {
         Some(command) => {
             match command.as_str() {
-                "list" => { println!("Yello"); }
+                "list" => { list_todos(); }
                 "-h" | "--help" => { print_header(); }
                 _ => {
                     println!("{color_red}Unknown command '{}' provided{color_reset}", command);
@@ -25,6 +30,38 @@ fn main() {
     }
 }
 
+fn list_todos() {
+    ensure_db();
+
+    let mut file =  File::open(DB_PATH).expect("Failed to read database file");
+    let mut content = String::new();
+
+    file.read_to_string(&mut content).expect("Failed to read database file");
+
+    let lines: Vec<&str> = content.split("\n")
+        .map(|line| line.trim())
+        .filter(|line| !line.is_empty())
+        .collect();
+
+    if lines.len() == 0 {
+        println!("{color_yellow}You have no todos saved{color_reset}");
+    } else {
+        println!("{color_green}TODOS{color_reset}");
+        for line in lines {
+            println!(" {color_cyan}-{color_reset} {}", line);
+        }
+    }
+}
+
+fn ensure_db() {
+    let file_path = Path::new(DB_PATH);
+    let file_exists = file_path.exists();
+
+    if !file_exists {
+        File::create(file_path).expect("Failed to create database file");
+    }
+}
+
 fn print_header() {
     println!("Welcome to TODO CLI");
     println!();
@@ -34,6 +71,6 @@ fn print_header() {
     println!("        {color_cyan}list{color_reset}           Print all embedded todos");
     println!("        {color_cyan}add{color_reset}            Add a new todo list item");
     println!("        {color_cyan}rm{color_reset}             Remove a todo item");
-    println!("    {color_cyan}-h, --help{color_reset}        Print help");
+    println!("    {color_cyan}-h, --help{color_reset}         Print help");
     println!();
 }
