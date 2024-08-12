@@ -1,13 +1,15 @@
 use std::env::args;
+use std::error::Error;
 use std::fs;
 use std::fs::OpenOptions;
 use std::io::Write;
 use std::path::{Path, MAIN_SEPARATOR};
+use futures::StreamExt;
+use chromiumoxide::{Browser, BrowserConfig};
 use inline_colorization::{color_cyan, color_green, color_reset};
-use reqwest::header::USER_AGENT;
 
 #[tokio::main]
-async fn main() {
+async fn main() -> Result<(), Box<dyn Error>> {
     let url = args().nth(1).expect("A source URL is required");
     let output_dir = args().nth(2).expect("An output dir is required");
 
@@ -17,23 +19,42 @@ async fn main() {
         fs::create_dir(path).expect("Failed to create the output directory");
     }
 
-    let client = reqwest::Client::new();
-    let response = client.get(&url)
-        .header(USER_AGENT, "Winner's Bot")
-        .send()
+    let (mut browser, mut handler) =
+        Browser::launch(BrowserConfig::builder().with_head().build()?).await?;
+    let handle = async_std::task::spawn(async move {
+        while let Some(h) = handler.next().await {
+            if h.is_err() {
+                break;
+            }
+        }
+    });
+    let page = browser.new_page(&url).await?;
+
+    let home_page = page.wait_for_navigation()
+        .await?
+        .content()
         .await
-        .unwrap();
+        .expect("Failed to read page content");
 
-    let index_text = response.text().await.unwrap();
+    write_content_to_file(home_page.as_str(), "index.html");
 
+
+    // kill the browser
+    browser.close().await?;
+    handle.await;
+
+    Ok(())
+}
+
+fn write_content_to_file(content: &str, file_name: &str) {
     // write the index file
     let mut file = OpenOptions::new()
         .write(true)
         .truncate(true)
         .create(true)
-        .open(format!("{output_dir}{MAIN_SEPARATOR}index.html"))
+        .open(format!("{output_dir}{MAIN_SEPARATOR}{file_name}"))
         .unwrap();
-    file.write(index_text.as_bytes()).expect("Failed to write index file");
+    file.write(content.as_bytes()).expect("Failed to write index file");
 
     println!("{color_green}Url{color_reset} {color_cyan}'{}'{color_reset} {color_green}scraped successfully{color_reset}", url);
 }
