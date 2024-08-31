@@ -1,8 +1,11 @@
 use std::env::args;
-use std::error::Error;
-use inline_colorization::{color_green, color_red, color_reset, color_cyan, color_yellow};
+use inline_colorization::{color_red, color_reset};
 use unicode_segmentation::UnicodeSegmentation;
 
+#[derive(Debug, Clone)]
+struct ParseError(String);
+
+#[derive(Debug)]
 enum Operator {
     Add,
     Subtract,
@@ -10,6 +13,7 @@ enum Operator {
     Divide,
 }
 
+#[derive(Debug)]
 enum Token {
     Operator {
         index: i32,
@@ -23,13 +27,15 @@ enum Token {
 }
 
 impl Operator {
-    fn parse(value: char) -> Result<Operator, dyn Error> {
+    fn parse(value: char) -> Result<Operator, ParseError> {
         match value {
+            '*' => Ok(Operator::Multiply),
             'x' => Ok(Operator::Multiply),
+            '÷' => Ok(Operator::Divide),
             '/' => Ok(Operator::Divide),
             '+' => Ok(Operator::Add),
             '-' => Ok(Operator::Subtract),
-            _ => Err("Invalid operator")
+            _ => Err(ParseError(format!("Invalid operator provided: '{}'", value)))
         }
     }
 }
@@ -44,19 +50,52 @@ fn main() {
             let mut raw_value: String = String::new();
 
             for letter in expression.chars() {
-                if letter.is_whitespace() {
+                if (letter.is_digit(10) || letter == '.' || letter == ',') {
+                    raw_value = format!("{}{}", raw_value, letter);
+                } else if letter.is_whitespace() {
                     if !raw_value.is_empty() {
                         tokens.push(Token::Operand {
                             end_index: index,
                             start_index: index - raw_value.graphemes(true).count() as i32,
                             raw_value: raw_value.clone(),
                         });
+                        // reset the value read out
+                        raw_value = String::new();
                     }
+                } else if index == expression.graphemes(true).count() as i32 {
+                    if !raw_value.is_empty() {
+                        tokens.push(Token::Operand {
+                            end_index: index,
+                            start_index: index - raw_value.graphemes(true).count() as i32,
+                            raw_value: raw_value.clone(),
+                        });
+                        // reset the value read out
+                        raw_value = String::new();
+                    }
+                }  else {
+                    // stash the parsed operand
+                    if !raw_value.is_empty() {
+                        tokens.push(Token::Operand {
+                            end_index: index,
+                            start_index: index - raw_value.graphemes(true).count() as i32,
+                            raw_value: raw_value.clone(),
+                        });
+                        // reset the value read out
+                        raw_value = String::new();
+                    }
+                    
+                    // this should be an operator
+                    let operator = Operator::parse(letter).unwrap();
+                    tokens.push(Token::Operator {
+                        index,
+                        operator
+                    });
                 }
 
-                raw_value = format!("{}{}", raw_value, letter);
                 index += 1;
             }
+
+            println!("{:?}", tokens);
         }
         None => {
             println!("{color_red}No expression provided{color_reset}");
