@@ -43,6 +43,21 @@ impl Operator {
     }
 }
 
+impl Token {
+    fn to_numeric(&self) -> Option<f32> {
+        match self {
+            Token::Operand { start_index, end_index, raw_value } => {
+                Some((normalize_numeric_string(raw_value)).parse::<f32>().unwrap())
+            }
+            _ => None
+        }
+    }
+}
+
+trait Operation {
+    fn evaluate(&self) -> f32;
+}
+
 fn main() {
     let expression_opt = args().nth(1);
 
@@ -110,4 +125,11 @@ fn evaluate_operand(index: i32, raw_value: &String) -> Option<Token> {
     }
 
     None
+}
+
+fn normalize_numeric_string(mut value: &String) -> String {
+    value.chars()
+        .filter(|&c| c != '.' && c != ' ')
+        .map(|c| if c == ',' { '.' } else { c })
+        .collect::<String>()
 }
