@@ -44,16 +44,31 @@ impl Operator {
 }
 
 #[derive(Debug)]
+enum Operand {
+    Value(f32),
+    Operation(dyn Operation),
+}
+
+impl Operand {
+    fn to_value(&self) -> f32 {
+        return match &self {
+            Operand::Value(value) => value.to_owned(),
+            Operand::Operation(operation) => operation.evaluate()
+        };
+    }
+}
+
+#[derive(Debug)]
 struct UnaryOperation {
     operator: Operator,
-    operand: f32
+    operand: Operand,
 }
 
 #[derive(Debug)]
 struct BinaryOperation {
-    left_operand: f32,
+    left_hand: Operand,
     operator: Operator,
-    right_operand: f32
+    right_hand: Operand,
 }
 
 trait Operation {
@@ -62,13 +77,27 @@ trait Operation {
 
 impl Operation for UnaryOperation {
     fn evaluate(&self) -> f32 {
-        todo!()
+        let evaluated_operand = self.operand.to_value();
+
+        return match self.operator {
+            Operator::Add => evaluated_operand,
+            Operator::Subtract => 0f32 - evaluated_operand,
+            _ => panic!("Unsupported unary iperator")
+        };
     }
 }
 
 impl Operation for BinaryOperation {
     fn evaluate(&self) -> f32 {
-        todo!()
+        let evaluated_left = self.left_hand.to_value();
+        let evaluated_right = self.right_hand.to_value();
+        
+        return match self.operator {
+            Operator::Add => evaluated_left + evaluated_right,
+            Operator::Subtract => evaluated_left - evaluated_right,
+            Operator::Multiply => evaluated_left * evaluated_right,
+            Operator::Divide => evaluated_left / evaluated_right,
+        };
     }
 }
 
@@ -141,6 +170,4 @@ fn evaluate_operand(index: i32, raw_value: &String) -> Option<Token> {
     None
 }
 
-fn to_operation(tokens: Vec<Token>) -> Box<dyn Operation> {
-    
-}
+fn to_operation(tokens: Vec<Token>) -> Box<dyn Operation> {}
