@@ -43,6 +43,35 @@ impl Operator {
     }
 }
 
+#[derive(Debug)]
+struct UnaryOperation {
+    operator: Operator,
+    operand: f32
+}
+
+#[derive(Debug)]
+struct BinaryOperation {
+    left_operand: f32,
+    operator: Operator,
+    right_operand: f32
+}
+
+trait Operation {
+    fn evaluate(&self) -> f32;
+}
+
+impl Operation for UnaryOperation {
+    fn evaluate(&self) -> f32 {
+        todo!()
+    }
+}
+
+impl Operation for BinaryOperation {
+    fn evaluate(&self) -> f32 {
+        todo!()
+    }
+}
+
 fn main() {
     let expression_opt = args().nth(1);
 
@@ -110,4 +139,8 @@ fn evaluate_operand(index: i32, raw_value: &String) -> Option<Token> {
     }
 
     None
+}
+
+fn to_operation(tokens: Vec<Token>) -> Box<dyn Operation> {
+    
 }
