@@ -51,10 +51,10 @@ enum Operand {
 
 impl Operand {
     fn to_value(&self) -> f32 {
-        return match &self {
+        match &self {
             Operand::Value(value) => value.to_owned(),
             Operand::Operation(operation) => operation.evaluate()
-        };
+        }
     }
 }
 
@@ -79,11 +79,11 @@ impl Operation for UnaryOperation {
     fn evaluate(&self) -> f32 {
         let evaluated_operand = self.operand.to_value();
 
-        return match self.operator {
+        match self.operator {
             Operator::Add => evaluated_operand,
             Operator::Subtract => 0f32 - evaluated_operand,
             _ => panic!("Unsupported unary iperator")
-        };
+        }
     }
 }
 
@@ -92,12 +92,12 @@ impl Operation for BinaryOperation {
         let evaluated_left = self.left_hand.to_value();
         let evaluated_right = self.right_hand.to_value();
 
-        return match self.operator {
+        match self.operator {
             Operator::Add => evaluated_left + evaluated_right,
             Operator::Subtract => evaluated_left - evaluated_right,
             Operator::Multiply => evaluated_left * evaluated_right,
             Operator::Divide => evaluated_left / evaluated_right,
-        };
+        }
     }
 }
 
@@ -107,7 +107,8 @@ fn main() {
     match expression_opt {
         Some(expression) => {
             let tokens: Vec<Token> = tokenize(expression);
-            println!("{:?}", tokens);
+            let operation = to_operation(tokens);
+            println!("The result of is {:?}", operation.evaluate());
         }
         None => {
             println!("{color_red}No expression provided{color_reset}");
@@ -177,4 +178,6 @@ fn normalize_numeric_string(mut value: &String) -> String {
         .collect::<String>()
 }
 
-fn to_operation(tokens: Vec<Token>) -> Box<dyn Operation> {}
+fn to_operation(tokens: Vec<Token>) -> Box<dyn Operation> {
+
+}
