@@ -43,19 +43,62 @@ impl Operator {
     }
 }
 
-impl Token {
-    fn to_numeric(&self) -> Option<f32> {
-        match self {
-            Token::Operand { start_index, end_index, raw_value } => {
-                Some((normalize_numeric_string(raw_value)).parse::<f32>().unwrap())
-            }
-            _ => None
-        }
+#[derive(Debug)]
+enum Operand {
+    Value(f32),
+    Operation(dyn Operation),
+}
+
+impl Operand {
+    fn to_value(&self) -> f32 {
+        return match &self {
+            Operand::Value(value) => value.to_owned(),
+            Operand::Operation(operation) => operation.evaluate()
+        };
     }
+}
+
+#[derive(Debug)]
+struct UnaryOperation {
+    operator: Operator,
+    operand: Operand,
+}
+
+#[derive(Debug)]
+struct BinaryOperation {
+    left_hand: Operand,
+    operator: Operator,
+    right_hand: Operand,
 }
 
 trait Operation {
     fn evaluate(&self) -> f32;
+}
+
+impl Operation for UnaryOperation {
+    fn evaluate(&self) -> f32 {
+        let evaluated_operand = self.operand.to_value();
+
+        return match self.operator {
+            Operator::Add => evaluated_operand,
+            Operator::Subtract => 0f32 - evaluated_operand,
+            _ => panic!("Unsupported unary iperator")
+        };
+    }
+}
+
+impl Operation for BinaryOperation {
+    fn evaluate(&self) -> f32 {
+        let evaluated_left = self.left_hand.to_value();
+        let evaluated_right = self.right_hand.to_value();
+
+        return match self.operator {
+            Operator::Add => evaluated_left + evaluated_right,
+            Operator::Subtract => evaluated_left - evaluated_right,
+            Operator::Multiply => evaluated_left * evaluated_right,
+            Operator::Divide => evaluated_left / evaluated_right,
+        };
+    }
 }
 
 fn main() {
@@ -133,3 +176,5 @@ fn normalize_numeric_string(mut value: &String) -> String {
         .map(|c| if c == ',' { '.' } else { c })
         .collect::<String>()
 }
+
+fn to_operation(tokens: Vec<Token>) -> Box<dyn Operation> {}
