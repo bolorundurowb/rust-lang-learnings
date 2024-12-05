@@ -1,3 +1,4 @@
+use std::cmp::PartialEq;
 use std::env::args;
 use inline_colorization::{color_red, color_reset};
 use unicode_segmentation::UnicodeSegmentation;
@@ -8,7 +9,7 @@ const WEIRD_EURO_DECIMAL_DELINEATOR: char = ',';
 #[derive(Debug, Clone)]
 struct ParseError(String);
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 enum Operator {
     Add,
     Subtract,
@@ -101,12 +102,24 @@ impl Operation for BinaryOperation {
     }
 }
 
+impl PartialEq<Operator> for &Operator {
+    fn eq(&self, other: &Operator) -> bool {
+        *self == *other
+    }
+}
+
 fn main() {
     let expression_opt = args().nth(1);
 
     match expression_opt {
         Some(expression) => {
             let tokens: Vec<Token> = tokenize(expression);
+            let is_valid = validate_tokens(&tokens);
+
+            if !is_valid {
+                panic!("Invalid expression: {}", expression);
+            }
+
             let operation = to_operation(tokens);
             println!("The result of is {:?}", operation.evaluate());
         }
@@ -178,6 +191,61 @@ fn normalize_numeric_string(mut value: &String) -> String {
         .collect::<String>()
 }
 
-fn to_operation(tokens: Vec<Token>) -> Box<dyn Operation> {
+fn validate_tokens(tokens: &Vec<Token>) -> bool {
+    let last_index = tokens.len() -1;
 
+    for (index, token) in tokens.iter().enumerate() {
+        match token {
+            Token::Operator { operator, .. } => {
+                if operator == Operator::Divide || operator == Operator::Multiply {
+                    // we cannot start an expression with a multiply or divide operator
+                    if index == 0  {
+                        return false;
+                    } else {
+                        let previous_token = &tokens[index - 1];
+                        match previous_token {
+                            Token::Operator {..} => {
+                                return false;
+                            }
+                            Token::Operand {..} => {}
+                        }
+                    }
+                }
+
+                // we cannot end an expression with an operator
+                if index ==  last_index{
+                    return false;
+                }
+            }
+            Token::Operand { .. } => {
+                let previous_token = &tokens[index - 1];
+                match previous_token {
+                    Token::Operator {..} => {}
+                    Token::Operand {..} => {
+                        return false;
+                    }
+                }
+            }
+        }
+    }
+
+    true
+}
+
+fn to_operation(tokens: Vec<Token>) -> Box<dyn Operation> {
+    let first_token = tokens.iter().nth(0).unwrap();
+    match first_token {
+        Token::Operator {operator, index} => {
+            if Operator::Add == *operator || *operator == Operator::Subtract {
+                let second_token = tokens.iter().nth(1).unwrap();
+                match *second_token {
+                    Token::Operator {sec_operator, sec_index} => {
+
+                    }
+                }
+            } else {
+                panic!("Unsupported operator");
+            }
+        }
+    }
 }
