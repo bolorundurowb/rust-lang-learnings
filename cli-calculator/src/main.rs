@@ -1,4 +1,4 @@
-use inline_colorization::{color_red, color_reset};
+use inline_colorization::{color_green, color_red, color_reset};
 use std::cmp::PartialEq;
 use std::env::args;
 use unicode_segmentation::UnicodeSegmentation;
@@ -113,7 +113,7 @@ fn main() {
             }
 
             let result = evaluate(tokens);
-            println!("The result of is {:?}", result);
+            println!("{color_green}The result of '{}' is: {:?} {color_reset}", expression, result);
         }
         None => {
             println!("{color_red}No expression provided{color_reset}");
@@ -134,7 +134,11 @@ fn tokenize(input: &String) -> Vec<Token> {
             || letter == WEIRD_EURO_DECIMAL_DELINEATOR
         {
             raw_value = format!("{}{}", raw_value, letter);
-        } else if letter.is_whitespace() || index == input_length {
+            
+            if index == input_length - 1 { 
+                append_if_operand(&mut tokens, &mut raw_value);
+            }
+        } else if letter.is_whitespace() {
             append_if_operand(&mut tokens, &mut raw_value);
         } else {
             // stash the parsed operand
@@ -205,6 +209,7 @@ fn validate_tokens(tokens: &Vec<Token>) -> bool {
 
                 // we cannot end an expression with an operator
                 if index == last_index {
+                    println!("{:?}", tokens);
                     return false;
                 }
             }
@@ -239,7 +244,7 @@ fn evaluate(tokens: Vec<Token>) -> f32 {
                     let previous_operand = initial_pass_result.pop().unwrap().to_operand();
                     let next_operand = tokens
                         .iter()
-                        .nth(initial_last_index + 1)
+                        .nth(initial_loop_cursor + 1)
                         .unwrap()
                         .to_operand();
 
@@ -271,11 +276,11 @@ fn evaluate(tokens: Vec<Token>) -> f32 {
     let mut final_loop_cursor = 0;
 
     while final_loop_cursor <= final_last_index {
-        let token = &initial_pass_result[initial_loop_cursor];
+        let token = &initial_pass_result[final_loop_cursor];
 
         match token {
             Token::Operator { operator, .. } => {
-                let next_token = &initial_pass_result[initial_loop_cursor + 1];
+                let next_token = &initial_pass_result[final_loop_cursor + 1];
                 let operation = UnaryOperation {
                     operator: *operator,
                     operand: next_token.to_operand(),
