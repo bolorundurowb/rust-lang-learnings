@@ -1,19 +1,44 @@
 <main class="container">
-  <h1>Welcome to Tauri + Angular!</h1>
+    <div>
+        <div>Enter Temperature</div>
 
-  <div class="row">
-    <a href="https://tauri.app" target="_blank">
-      <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-    </a>
-    <a href="https://angular.io" target="_blank">
-      <img src="/assets/angular.svg" class="logo angular" alt="Angular logo" />
-    </a>
-  </div>
-  <p>Click on the logos to learn more about the frameworks</p>
+        <div>
+            <div>Value</div>
+            <input
+                    name="input-value"
+                    type="number"
+                    [disabled]="isConverting"
+                    [(value)]="value"/>
+            <select
+                    name="value-unit"
+                    [disabled]="isConverting"
+                    [value]="valueUnit"
+                    (change)="valueUnitChanged($event)">
+                <option value="c">°C</option>
+                <option value="f">°F</option>
+            </select>
 
-  <form class="row" (submit)="greet($event, greetInput.value)">
-    <input #greetInput id="greet-input" placeholder="Enter a name..." />
-    <button type="submit">Greet</button>
-  </form>
-  <p>{{ greetingMessage }}</p>
+            <button
+                    [disabled]="isConverting"
+                    (click)="convert()">
+                Convert
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512">
+                    <!--!Font Awesome Free 6.7.2 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free Copyright 2024 Fonticons, Inc.-->
+                    <path d="M438.6 278.6c12.5-12.5 12.5-32.8 0-45.3l-160-160c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3L338.8 224 32 224c-17.7 0-32 14.3-32 32s14.3 32 32 32l306.7 0L233.4 393.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0l160-160z"/>
+                </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="result-container">
+        <div>
+          <span>
+            {{ computedResult }}
+          </span>
+            &#176;
+            <span>
+            {{ convertedUnit }}
+          </span>
+        </div>
+    </div>
 </main>
