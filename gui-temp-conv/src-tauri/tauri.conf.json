@@ -5,7 +5,7 @@
   "identifier": "dev.bolorundurowb.gui-temp-conv",
   "build": {
     "beforeDevCommand": "yarn start",
-    "devUrl": "http://localhost:1420",
+    "devUrl": "http://localhost:8421",
     "beforeBuildCommand": "yarn build",
     "frontendDist": "../dist/gui-temp-conv/browser"
   },
