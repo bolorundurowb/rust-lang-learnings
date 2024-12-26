@@ -1,9 +1,8 @@
 <main class="container">
-    <div>
-        <div>Enter Temperature</div>
+    <div class="values">
+        <div class="header">Enter Temperature</div>
 
-        <div>
-            <div>Value</div>
+        <div class="input-row">
             <input
                     name="input-value"
                     type="number"
@@ -17,7 +16,9 @@
                 <option value="c">°C</option>
                 <option value="f">°F</option>
             </select>
+        </div>
 
+        <div class="action-row">
             <button
                     [disabled]="isConverting"
                     (click)="convert()">
@@ -30,15 +31,9 @@
         </div>
     </div>
 
-    <div class="result-container">
-        <div>
-          <span>
-            {{ computedResult }}
-          </span>
-            &#176;
-            <span>
-            {{ convertedUnit }}
-          </span>
+    <div class="results">
+        <div class="text">
+            <span class="value">{{ computedResult }}</span>&#176;<span class="unit">{{ convertedUnit }}</span>
         </div>
     </div>
 </main>

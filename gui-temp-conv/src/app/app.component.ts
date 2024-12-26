@@ -1,4 +1,4 @@
-import {Component} from '@angular/core';
+import {AfterViewChecked, AfterViewInit, Component} from '@angular/core';
 import {CommonModule} from '@angular/common';
 import {invoke} from "@tauri-apps/api/core";
 import {FormsModule} from "@angular/forms";
@@ -8,9 +8,9 @@ import {FormsModule} from "@angular/forms";
     standalone: true,
     imports: [CommonModule, FormsModule],
     templateUrl: './app.component.html',
-    styleUrl: './app.component.css'
+    styleUrl: './app.component.scss'
 })
-export class AppComponent {
+export class AppComponent implements AfterViewInit{
     computedResult?: number;
     convertedUnit?: string;
 
@@ -18,20 +18,31 @@ export class AppComponent {
     valueUnit?: string;
     isConverting = false;
 
+    async ngAfterViewInit() {
+        this.value = 100;
+        this.valueUnit = 'c';
+
+        await this.convert();
+    }
+
     async convert() {
         if (this.isConverting) {
             return;
         }
 
+        this.isConverting = true;
+
         if (this.valueUnit === 'c') {
+            this.computedResult = await invoke<number>("convert_to_f", {value: this.value});
             this.convertedUnit = 'F';
-            this.computedResult = await invoke<number>("convert_to_f", {value: this.valueUnit});
         } else if (this.valueUnit === 'f') {
+            this.computedResult = await invoke<number>("convert_to_c", {value: this.value});
             this.convertedUnit = 'C';
-            this.computedResult = await invoke<number>("convert_to_c", {value: this.valueUnit});
         } else {
             throw new Error('Unexpected value unit');
         }
+
+        this.isConverting = false;
     }
 
     valueUnitChanged(event: any) {
