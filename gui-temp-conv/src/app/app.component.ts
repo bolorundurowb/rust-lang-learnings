@@ -56,4 +56,8 @@ export class AppComponent implements AfterViewInit{
             throw new Error('Unsupported value unit');
         }
     }
+
+    valueChanged(event: any) {
+        this.value = event.target.value;
+    }
 }

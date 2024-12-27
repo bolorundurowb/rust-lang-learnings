@@ -7,7 +7,9 @@
                     name="input-value"
                     type="number"
                     [disabled]="isConverting"
-                    [(value)]="value"/>
+                    [value]="value"
+                    (change)="valueChanged($event)"
+            />
             <select
                     name="value-unit"
                     [disabled]="isConverting"
