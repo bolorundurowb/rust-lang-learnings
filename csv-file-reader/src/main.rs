@@ -26,7 +26,7 @@ impl MyData {
 }
 
 fn main() {
-    let file_path = "C:\\Users\\bolorundurowb\\Downloads\\username.csv";
+    let file_path = "username.csv";
 
     let raw_contents = fs::read_to_string(file_path).expect("File could not be read");
     let content_rows = raw_contents
