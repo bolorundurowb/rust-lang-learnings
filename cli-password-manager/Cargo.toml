@@ -1,0 +1,8 @@
+[package]
+name = "cli-password-manager"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+inline_colorization = "0.1.6"
+rage = "0.11.1"
